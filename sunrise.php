@@ -24,12 +24,7 @@ class MultilanguageSubsiteMapper {
 		global $wpdb;
 
 		foreach ( get_sites() as $site ) {
-			$prefix = DB_TABLE_PREFIX; // 'wp_'
-
-			if ( ! is_main_site( $site->blog_id ) ) {
-				$prefix = $prefix . $site->blog_id . '_';
-			}
-
+			$prefix           = $wpdb->get_blog_prefix( $site->blog_id ); // e.g. 'wp_'
 			$polylang_options = $wpdb->get_row( $wpdb->prepare( "SELECT option_value FROM {$prefix}options WHERE option_name = %s LIMIT 1", 'polylang' ) );
 
 			if ( ! empty( $polylang_options->option_value ) ) {
@@ -39,7 +34,10 @@ class MultilanguageSubsiteMapper {
 					unset( $polylang_options['domains'][ $polylang_options['default_lang'] ] );
 
 					foreach ( $polylang_options['domains'] as $domain ) {
-						$this->sites_language_urls[ str_replace( [ 'https://', 'http://' ], '', $domain ) ] = intval( $site->blog_id );
+						$this->sites_language_urls[ str_replace( [
+							'https://',
+							'http://',
+						], '', $domain ) ] = intval( $site->blog_id );
 					}
 				}
 			}
@@ -53,7 +51,7 @@ class MultilanguageSubsiteMapper {
 	 * If the request is for a non-default language-specific domain,
 	 * get the site object and overwrite the default domain with the language specific one
 	 *
-	 * @param $site
+	 * @param        $site
 	 * @param string $domain
 	 * @param string $path
 	 *
